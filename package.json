@@ -1,0 +1,25 @@
+{
+  "name": "ws",
+  "version": "1.0.0",
+  "description": "This module extends the functionality of the `ws` library, adding support for emitting and handling events, as well as creating and managing WebSocket rooms.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cch137/ws.git"
+  },
+  "keywords": [
+    "ws"
+  ],
+  "author": "cch137",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cch137/ws/issues"
+  },
+  "homepage": "https://github.com/cch137/ws#readme",
+  "dependencies": {
+    "ws": "^8.12.1"
+  }
+}
