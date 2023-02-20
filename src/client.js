@@ -154,3 +154,7 @@ const io = (() => {
 
   return () => new IO();
 })();
+
+window.io = io;
+
+export default io;
