@@ -82,6 +82,8 @@ git pull
 git add .
 git commit -am "updated"
 git push
+npm publish --access=public
+
 
 ```
 
