@@ -1,6 +1,6 @@
 {
   "name": "@cch137/ws",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "This module extends the functionality of the `ws` library, adding support for emitting and handling events, as well as creating and managing WebSocket rooms.",
   "main": "index.js",
   "scripts": {

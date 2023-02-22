@@ -134,9 +134,11 @@ const io = (() => {
       }));
     }
 
+    #pendingCount = 0;
+
     pending(event, data) {
       return new Promise((resolve, reject) => {
-        const id = chee.random.base64(256);
+        const id = ++this.#pendingCount;
         this.ws.send(JSON.stringify({
           event: 'pending',
           data: {
