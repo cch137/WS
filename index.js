@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 
 
+/**
+ * If the time to be processed belongs to RESERVED_EVENTS, it will be handled by the native methods of ws.
+ */
 const RESERVED_EVENTS = [
   'close',
   'error',
@@ -15,14 +18,13 @@ const RESERVED_EVENTS = [
 ];
 
 WS.prototype.joinedRooms = new Set();
-WS.prototype.__on = WS.prototype.on;
-WS.prototype.__emit = WS.prototype.emit;
+const wsOn = WS.prototype.on, wsEmit = WS.prototype.emit;
 
 WS.prototype.emit = function(event, data, callback=(err)=>{}, ..._args) {
   const type = event, args = [data, callback, ..._args];
 
   if (typeof callback != 'function') {
-    return this.__emit(type, ...args);
+    return wsEmit.call(this, type, ...args);
   }
 
   if (this.readyState === WS.OPEN) {
@@ -46,7 +48,7 @@ WS.prototype.endPending = function(id, event, data, callback=(err)=>{}) {
 
 WS.prototype.on = function(event, handler=(data,pendingId)=>{}) {
   if (RESERVED_EVENTS.includes(event)) {
-    return this.__on(event, handler);
+    return wsOn.call(this, event, handler);
   }
   if (!this.handlers) {
     this.handlers = {};
@@ -60,7 +62,7 @@ WS.prototype.on = function(event, handler=(data,pendingId)=>{}) {
   eventHandlerSet.add(handler);
 
   if (!this.initedWS) {
-    this.__on('message', (data) => {
+    wsOn.call(this, 'message', (data) => {
       let event = 'message', pendingId;
       if (data instanceof Buffer) {
         data = data.toString();
@@ -118,7 +120,7 @@ class WSRoom {
 }
 
 
-WS.Server.prototype.__emit = WS.Server.prototype.emit;
+const wsSvrEmit = WS.Server.prototype.emit;
 
 WS.Server.prototype.emit = function(event, data, callback, ...args) {
   args = [event, data, callback, ...args];
@@ -135,7 +137,7 @@ WS.Server.prototype.emit = function(event, data, callback, ...args) {
       }
     });
   } catch {
-    this.__emit(...args);
+    wsSvrEmit.call(this, ...args);
   }
 };
 
