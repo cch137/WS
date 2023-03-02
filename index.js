@@ -175,9 +175,4 @@ WS.Server = class WSServer extends WS.Server {
 }
 
 
-module.exports = (clientJsPath) => {
-  if (clientJsPath) {
-    fs.copyFileSync(path.join(__dirname, './src/client.js'), clientJsPath);
-  }
-  return WS;
-}
+module.exports = WS;

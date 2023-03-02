@@ -68,14 +68,16 @@ The  `WSRoom`  class represents a WebSocket room.
 
 ## Commands
 
-### 運行
+```
+npm uninstall @cch137/ws
+npm i @cch137/ws
 
 ```
-npm run i
 
 ```
+npm init --scope=cch137
 
-### 推送 Repository
+```
 
 ```
 git pull
@@ -83,14 +85,5 @@ git add .
 git commit -am "updated"
 git push
 npm publish --access=public
-
-
-```
-
-### 開發初始化
-
-```
-npm i --save-dev @types/node
-npm i
 
 ```
