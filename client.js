@@ -107,8 +107,8 @@ class IO {
     ws.onopen = (event) => {
       self.connected = true;
       if (self.reconnecting) {
-        self.callListeners($RECONNECT, event);
         clearInterval(self.reconnecting);
+        self.callListeners($RECONNECT, event);
         self.reconnecting = false;
         self.reconnectTries = 0;
       } else {
@@ -145,13 +145,15 @@ class IO {
 
     ws.onclose = (event) => {
       self.connected = false;
-      if (!self.reconnecting) {
-        self.reconnecting = setInterval(() => {
-          self.callListeners($RECONNECTING);
-        }, 0);
+      if (self.autoReconnect) {
+        self.connect();
+        self.reconnectTries++;
+        if (!self.reconnecting) {
+          self.reconnecting = setInterval(() => {
+            self.callListeners($RECONNECTING);
+          }, 0);
+        }
       }
-      self.reconnectTries++;
-      if (self.autoReconnect) self.connect();
       self.callListeners($DISCONNECT, event);
     };
     
