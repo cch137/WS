@@ -194,7 +194,8 @@ class IO {
   }
 }
 
-const io = () => new IO();
+/** @param {Boolean} connectNow */
+const io = (connectNow) => new IO(connectNow);
 io.IO = IO;
 
 export default io;
