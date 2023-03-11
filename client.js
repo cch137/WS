@@ -99,8 +99,8 @@ class IO {
   }
   
   connect() {
-    if (self.connected || self.connecting) return;
     const self = this;
+    if (self.connected || self.connecting) return;
 
     self.autoReconnect = true;
     self.connecting = true;
