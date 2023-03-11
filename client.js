@@ -23,6 +23,9 @@ class IO {
   /** @type {Boolean} */
   connected = false;
 
+  /** @type {Boolean} */
+  connecting = false;
+
   /** @type {Boolean|NodeJS.Timer|Number} */
   reconnecting = false;
 
@@ -99,6 +102,7 @@ class IO {
     const self = this;
 
     self.autoReconnect = true;
+    self.connecting = true;
     if (self.reconnectTries > 1) self.callListeners($RECONNECT_FAILED);
     if (self.reconnecting) self.callListeners($RECONNECT_ATTEMPT);
 
@@ -106,6 +110,7 @@ class IO {
 
     ws.onopen = (event) => {
       self.connected = true;
+      self.connecting = false;
       if (self.reconnecting) {
         clearInterval(self.reconnecting);
         self.callListeners($RECONNECT, event);
