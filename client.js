@@ -99,6 +99,7 @@ class IO {
   }
   
   connect() {
+    if (self.connected || self.connecting) return;
     const self = this;
 
     self.autoReconnect = true;
@@ -150,6 +151,7 @@ class IO {
 
     ws.onclose = (event) => {
       self.connected = false;
+      this.connecting = false;
       if (self.autoReconnect) {
         self.connect();
         self.reconnectTries++;
@@ -167,6 +169,7 @@ class IO {
   }
 
   disconnect() {
+    if (!self.connected) return;
     this.autoReconnect = false;
     this.ws.close(1000, 'Connection closed by user');
   }
