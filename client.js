@@ -107,7 +107,7 @@ class IO {
     if (self.reconnectTries > 1) self.callListeners($RECONNECT_FAILED);
     if (self.reconnecting) self.callListeners($RECONNECT_ATTEMPT);
 
-    const ws = new WebSocket(location.origin.replace(/^https?:\/\//, 'ws://'));
+    const ws = new WebSocket(location.origin.replace(/^http/, 'ws'));
 
     ws.onopen = (event) => {
       self.connected = true;
