@@ -197,8 +197,8 @@ class IO {
       }));
       this.on(id, (data, err) => {
         if (err) reject(err);
-        else if (data?.name === 'error') reject(data);
-        else resolve(data);
+        else if (data?.name === 'error') reject(data.data);
+        else resolve(data.data);
         this.clearHandlers(id);
       });
     });
