@@ -1,5 +1,13 @@
 const WS = require('ws');
 
+const isIterable = (obj) => {
+  try {
+    return  typeof obj[Symbol?.iterator] === 'function';
+  } catch {
+    return false;
+  }
+}
+
 const stringify = (obj) => {
   const loadedObj = new Set();
   const reviver = (key, value) => {
