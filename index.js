@@ -1,7 +1,17 @@
 const WS = require('ws');
-const fs = require('fs');
-const path = require('path');
 
+const stringify = (obj) => {
+  const loadedObj = new Set();
+  const reviver = (key, value) => {
+    if (typeof value === "object" && value !== null) {
+      if (loadedObj.has(value)) return undefined;
+      loadedObj.add(value);
+      if (isIterable(value)) value = [...value];
+    }
+    return value;
+  };
+  return JSON.stringify(obj, reviver);
+}
 
 /**
  * If the time to be processed belongs to RESERVED_EVENTS, it will be handled by the native methods of ws.
@@ -28,7 +38,7 @@ WS.prototype.emit = function(event, data, callback=(err)=>{}, ..._args) {
   }
 
   if (this.readyState === WS.OPEN) {
-    this.send(JSON.stringify({
+    this.send(stringify({
       event,
       data
     }), callback);
@@ -37,7 +47,7 @@ WS.prototype.emit = function(event, data, callback=(err)=>{}, ..._args) {
 
 WS.prototype.endPending = function(id, event, data, callback=(err)=>{}) {
   if (this.readyState === WS.OPEN) {
-    this.send(JSON.stringify({
+    this.send(stringify({
       event: 'pending',
       data: {
         id, event, data
@@ -126,12 +136,11 @@ WS.Server.prototype.emit = function(event, data, callback, ...args) {
   args = [event, data, callback, ...args];
   try {
     if (callback && typeof callback != 'function') {
-      throw 'Callback is not a fucntion';
+      throw new Error('Callback is not a fucntion');
     }
-    const message = JSON.stringify({event, data});
+    const message = stringify({event, data});
 
     this.clients.forEach(client => {
-
       if (client.readyState === WS.OPEN) {
         client.send(message);
       }
