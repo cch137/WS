@@ -98,7 +98,7 @@ class IO {
     }
   }
   
-  /** @type {Promise} */
+  /** @type {Promise<WebSocket>} */
   #connectPromise;
   connect(_resolve) {
     this.#connectPromise = new Promise((resolve, reject) => {
@@ -125,7 +125,7 @@ class IO {
         }
         const waitingList = self.#waitingList.splice(0, self.#waitingList.length);
         waitingList.forEach(args => self.emit(...args));
-        resolve();
+        resolve(ws);
       };
   
       /** @param {WSEventData} event */
@@ -160,7 +160,7 @@ class IO {
         this.connecting = false;
         if (self.autoReconnect) {
           self.connect(resolve)
-          .then(() => _resolve ? _resolve() : 0)
+          .then(() => _resolve ? _resolve(ws) : 0)
           .catch(err => reject(err));
           self.reconnectTries++;
           if (!self.reconnecting) {
