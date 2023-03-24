@@ -120,10 +120,8 @@ class IO {
       } else {
         self.callListeners($CONNECT, event);
       }
-      self.#waitingList.splice(0, self.#waitingList.length)
-      .forEach(args => {
-        this.emit(...args);
-      });
+      const waitingList = self.#waitingList.splice(0, self.#waitingList.length);
+      waitingList.forEach(args => self.emit(...args));
     };
 
     /** @param {WSEventData} event */
@@ -173,12 +171,13 @@ class IO {
   }
 
   disconnect() {
-    if (!self.connected) return;
+    if (!this.connected) return;
     this.autoReconnect = false;
     this.ws.close(1000, 'Connection closed by user');
   }
 
   #waitingList = [];
+
   /** @param {String} event @param {*} data */
   emit(event, data) {
     if (this.connected) {
