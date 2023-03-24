@@ -103,7 +103,7 @@ class IO {
   connect(_resolve) {
     this.#connectPromise = new Promise((resolve, reject) => {
       const self = this;
-      if (self.connected || self.connecting) return;
+      if (self.connected || self.connecting) return resolve();
   
       self.autoReconnect = true;
       self.connecting = true;
