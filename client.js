@@ -98,76 +98,84 @@ class IO {
     }
   }
   
-  connect() {
-    const self = this;
-    if (self.connected || self.connecting) return;
-
-    self.autoReconnect = true;
-    self.connecting = true;
-    if (self.reconnectTries > 1) self.callListeners($RECONNECT_FAILED);
-    if (self.reconnecting) self.callListeners($RECONNECT_ATTEMPT);
-
-    const ws = new WebSocket(location.origin.replace(/^http/, 'ws'));
-
-    ws.onopen = (event) => {
-      self.connected = true;
-      self.connecting = false;
-      if (self.reconnecting) {
-        clearInterval(self.reconnecting);
-        self.callListeners($RECONNECT, event);
-        self.reconnecting = false;
-        self.reconnectTries = 0;
-      } else {
-        self.callListeners($CONNECT, event);
-      }
-      const waitingList = self.#waitingList.splice(0, self.#waitingList.length);
-      waitingList.forEach(args => self.emit(...args));
-    };
-
-    /** @param {WSEventData} event */
-    ws.onmessage = (event) => {
-      let eventName = 'message';
-      /** @type {WSEventData} */
-      let data = event.data;
-      try {
-        /** @type {WSEventData} */
-        const packet = JSON.parse(data);
-        if (packet.event === 'pending') {
-          eventName = packet.data.id;
-          data = packet.data.data;
+  /** @type {Promise} */
+  #connectPromise;
+  connect(_resolve) {
+    this.#connectPromise = new Promise((resolve, reject) => {
+      const self = this;
+      if (self.connected || self.connecting) return;
+  
+      self.autoReconnect = true;
+      self.connecting = true;
+      if (self.reconnectTries > 1) self.callListeners($RECONNECT_FAILED);
+      if (self.reconnecting) self.callListeners($RECONNECT_ATTEMPT);
+  
+      const ws = new WebSocket(location.origin.replace(/^http/, 'ws'));
+  
+      ws.onopen = (event) => {
+        self.connected = true;
+        self.connecting = false;
+        if (self.reconnecting) {
+          clearInterval(self.reconnecting);
+          self.callListeners($RECONNECT, event);
+          self.reconnecting = false;
+          self.reconnectTries = 0;
         } else {
-          eventName = packet.event;
-          data = packet.data;
+          self.callListeners($CONNECT, event);
         }
-      } catch {}
-      self.callListeners(eventName, data);
-    };
-
-    ws.onerror = (err) => {
-      if (self.reconnecting) {
-        self.callListeners($RECONNECT_ERROR, err);
-      } else {
-        self.callListeners($ERROR, err);
-      }
-    };
-
-    ws.onclose = (event) => {
-      self.connected = false;
-      this.connecting = false;
-      if (self.autoReconnect) {
-        self.connect();
-        self.reconnectTries++;
-        if (!self.reconnecting) {
-          self.reconnecting = setInterval(() => {
-            self.callListeners($RECONNECTING);
-          }, 0);
+        const waitingList = self.#waitingList.splice(0, self.#waitingList.length);
+        waitingList.forEach(args => self.emit(...args));
+        resolve();
+      };
+  
+      /** @param {WSEventData} event */
+      ws.onmessage = (event) => {
+        let eventName = 'message';
+        /** @type {WSEventData} */
+        let data = event.data;
+        try {
+          /** @type {WSEventData} */
+          const packet = JSON.parse(data);
+          if (packet.event === 'pending') {
+            eventName = packet.data.id;
+            data = packet.data.data;
+          } else {
+            eventName = packet.event;
+            data = packet.data;
+          }
+        } catch {}
+        self.callListeners(eventName, data);
+      };
+  
+      ws.onerror = (err) => {
+        if (self.reconnecting) {
+          self.callListeners($RECONNECT_ERROR, err);
+        } else {
+          self.callListeners($ERROR, err);
         }
-      }
-      self.callListeners($DISCONNECT, event);
-    };
-    
-    delete this.ws;
-    this.ws = ws;
+      };
+  
+      ws.onclose = (event) => {
+        self.connected = false;
+        this.connecting = false;
+        if (self.autoReconnect) {
+          self.connect(resolve)
+          .then(() => _resolve ? _resolve() : 0)
+          .catch(err => reject(err));
+          self.reconnectTries++;
+          if (!self.reconnecting) {
+            self.reconnecting = setInterval(() => {
+              self.callListeners($RECONNECTING);
+            }, 0);
+          }
+        } else reject('Auto-reconnect is disabled');
+        self.callListeners($DISCONNECT, event);
+      };
+      
+      delete this.ws;
+      this.ws = ws;
+    });
+    return this.#connectPromise;
   }
 
   disconnect() {
