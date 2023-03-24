@@ -120,6 +120,10 @@ class IO {
       } else {
         self.callListeners($CONNECT, event);
       }
+      self.#waitingList.splice(0, self.#waitingList.length)
+      .forEach(args => {
+        this.emit(...args);
+      });
     };
 
     /** @param {WSEventData} event */
@@ -174,12 +178,16 @@ class IO {
     this.ws.close(1000, 'Connection closed by user');
   }
 
-  
+  #waitingList = [];
   /** @param {String} event @param {*} data */
   emit(event, data) {
-    this.ws.send(JSON.stringify({
-      event, data
-    }));
+    if (this.connected) {
+      this.ws.send(JSON.stringify({
+        event, data
+      }));
+    } else {
+      this.#waitingList.push([event, data]);
+    }
   }
 
   /** @type {Number} */
@@ -189,12 +197,7 @@ class IO {
   pending(event, data) {
     return new Promise((resolve, reject) => {
       const id = ++this.#pendingCount;
-      this.ws.send(JSON.stringify({
-        event: 'pending',
-        data: {
-          id, event, data
-        }
-      }));
+      this.emit('pending', { id, event, data });
       this.on(id, (data, err) => {
         if (err) reject(err);
         else if (data?.name === 'error') reject(data.data);
